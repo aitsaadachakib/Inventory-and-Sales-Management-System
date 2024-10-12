@@ -1,2 +1,2 @@
-superAdmin|1234567890|admin
+admin|admin|admin
 test_user|12345678|user

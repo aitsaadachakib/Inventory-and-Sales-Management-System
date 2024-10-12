@@ -5,13 +5,15 @@ from SuperMarket.users import Users
 from ui.login import Ui_login
 from widgets.MainWidget import MainWidget
 from widgets.UIFunctions import Theme, showMessage
+from SuperMarket.database import User
 
 
 class LoginWidget(QWidget, Ui_login):
-    def __init__(self, *args, **kwargs):
+    def __init__(self,session, *args, **kwargs):
+        self.session=session
         super().__init__(*args, **kwargs)
         self.setupUi(self)
-        self.setWindowTitle('MASS Supermarket')
+        self.setWindowTitle('Saada phone')
         self.setWindowIcon(QIcon('res/images/icon-128px.png'))
 
         self.theme = {'dark': 'stylesheets/login-dark.qss',
@@ -37,12 +39,11 @@ class LoginWidget(QWidget, Ui_login):
         if username == '' or password == '':
             showMessage(self, 'Input Error', 'please fill the fields')
         else:
-            user = Users()
-            user_data = user.login(username, password)
-            if not user_data:
+            user = self.session.query(User).filter_by(name=username).first()
+            if not user :
                 showMessage(self, 'Input Error', 'Invalid Username or password')
-            elif user_data:
-                self.login(user_data)
+            elif user:
+                self.login(user)
 
     def logout(self):
         self.fieldUserName.clear()
@@ -51,7 +52,7 @@ class LoginWidget(QWidget, Ui_login):
         self.show()
 
     def login(self, user_data):
-        self.mainWidget = MainWidget(user_data)
+        self.mainWidget = MainWidget(user_data,self.session)
         self.mainWidget.communicate.logout.connect(lambda: self.logout())
         self.hide()
         self.mainWidget.showMaximized()

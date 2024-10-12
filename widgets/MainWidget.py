@@ -117,7 +117,8 @@ class AddUserDialog(QDialog, Ui_addUser):
 
 
 class MainWidget(QMainWindow):
-    def __init__(self, user_data, *args, **kwargs):
+    def __init__(self, user_data,session, *args, **kwargs):
+        self.session=session
         super().__init__(*args, **kwargs)
         self.user_data = user_data
         # setup the mainwindow
@@ -184,7 +185,7 @@ class MainWidget(QMainWindow):
         logout.triggered.connect(lambda: self.logout())
         change_pwd = account.addAction('change password')
         change_pwd.triggered.connect(lambda: self.changePassword())
-        if self.user_data['type'] == 'admin':
+        if self.user_data.type.value == 'admin':
             add_employee = account.addAction('add employee')
             add_employee.triggered.connect(lambda: self.addEmployee())
 
