@@ -3,7 +3,6 @@ import re
 from PySide6.QtCore import QRect, Signal, QObject
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QStackedWidget, QMenuBar, QDialog
-
 from SuperMarket.users import Users
 from ui.addUser import Ui_addUser
 from ui.changePassword import Ui_changePassword
@@ -122,7 +121,7 @@ class MainWidget(QMainWindow):
         super().__init__(*args, **kwargs)
         self.user_data = user_data
         # setup the mainwindow
-        self.setWindowTitle('MASS Supermarket')
+        self.setWindowTitle('SAADA Phone')
         self.setWindowIcon(QIcon('res/images/icon-128px.png'))
         self.centralwidget = QStackedWidget(self)
         self.setCentralWidget(self.centralwidget)
@@ -135,7 +134,7 @@ class MainWidget(QMainWindow):
         thm.applyTheme(json_theme)
 
         # setup contents of stacked widget
-        self.purchaseWidget = PurchaseWidget()
+        self.purchaseWidget = PurchaseWidget(self.session,self)
         self.productsWidget = ProductsWidget()
         self.stockWidget = StockWidget()
         self.salesWidget = SalesWidget()

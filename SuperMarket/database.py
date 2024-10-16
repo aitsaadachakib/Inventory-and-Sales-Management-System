@@ -39,6 +39,7 @@ class User(Base):
     
     def verify_password(self, password):
         return check_password_hash(self._password, password)
+    
 
 # Customer class
 class Customer(Base):
@@ -50,6 +51,8 @@ class Customer(Base):
     sold = Column(Float, default=0.0)
     
     transactions = relationship("Transaction", back_populates="customer")
+    def tolist(self):
+        return[self.id,str(self.nom),str(self.type),str(self.sold)]
 
 # Product class
 class Product(Base):
@@ -57,7 +60,8 @@ class Product(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
-    qt = Column(Float, nullable=False)  # Quantity
+    qt = Column(Integer, nullable=False)  # Quantity
+    pritdachat=Column(Integer, nullable=False)
 
     categorie_id = Column(Integer, ForeignKey("categories.id"))
     categorie = relationship("Categorie", back_populates="products")
@@ -72,7 +76,7 @@ class Transaction(Base):
     __tablename__ = 'transactions'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    date = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    date = Column(DateTime, default=datetime.timezone.utc, index=True)
     total = Column(Float, nullable=False)
     versement = Column(Float, nullable=False)  # Payment made
     ensiansold = Column(Float)  # Customer's balance before the transaction
@@ -92,11 +96,13 @@ class TransactionItem(Base):
     priceachat = Column(Float, nullable=False)  # Purchase price
     price = Column(Float, nullable=False)  # Sale price
     
-    transaction_id = Column(Integer, ForeignKey('transactions.id'))
+    transaction_id = Column(Integer, ForeignKey('transactions.id'),index=True)
     transaction = relationship("Transaction", back_populates="transaction_items")
     
     product_id = Column(Integer, ForeignKey('products.id'))
     product = relationship("Product", back_populates="transaction_items")
+    def total(self):
+        return self.qt*self.price
 
 # Categorie class
 class Categorie(Base):

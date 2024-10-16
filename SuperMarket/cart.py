@@ -2,14 +2,30 @@ from SuperMarket.products import Products
 from SuperMarket.sales import Sales
 
 
-class Cart(Products, Sales):
+from SuperMarket.database import Transaction,TransactionItem
+
+
+
+class transactionI:
+    def __init__(self, type, qt, price, product,limited):
+        self.type = type
+        self.qt = qt  # Quantitys
+        self.price = price  # Sale price
+        self.product = product  # Associated product
+        
+
+
+class Cart():
     def __init__(self):
         super().__init__()
-        self.cart = {}
-        self.total_cost = 0
 
-    def newProduct(self, product_code, units):
-        self.cart[product_code] = units
+        self.cart = []
+        self.total_cost = 0
+        
+
+    def newProduct(self,type, qt, price, product,limited):
+
+        self.cart.append(transactionI(type, qt, price, product,limited))
 
     def getTotalCost(self):
         return self.total_cost
@@ -21,11 +37,10 @@ class Cart(Products, Sales):
     def getCartTable(self):
         data = []
         self.total_cost = 0
-        for k, v in self.cart.items():
-            details = self.getProductDetails(str(k))
-            details[4] = str(v)
-            details.append(str(v * float(details[5])))
-            self.total_cost += float(details[6])
+        for i in range(len(self.cart)):
+            item=self.cart[i]
+            details = self.getProductDetails(i,item)
+            self.total_cost += details[6]
             data.append(details)
         return data
 
@@ -38,3 +53,27 @@ class Cart(Products, Sales):
 
     def clearCart(self):
         self.cart.clear()
+
+    def getProductDetails(self,i, item):
+        """
+        :type code: str
+        """
+        details = []
+        details.append(str(i))
+        details.append(item.product.name)
+        if(item.limited):
+            details.append("")
+            details.append("")
+        else:
+            details.append(item.product.brand.name)
+            details.append(item.product.categorie.name)
+        details.append(str(item.qt))
+        details.append(str(item.price))
+        details.append(str(item.price*item.qt))
+        return details
+    def makePurchase(self,session,vercement):
+        transaction=Transaction(self.total_cost)
+        for item in self.cart:
+
+            item
+        return

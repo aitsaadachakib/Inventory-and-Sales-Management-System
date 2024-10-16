@@ -1,36 +1,40 @@
 from PySide6.QtGui import Qt
 from PySide6.QtWidgets import QWidget, QHeaderView, QTableWidgetItem
 
+from widgets.ClientselectionWidget import ClientselectionMainwigget
+from SuperMarket.database import Customer,CustomerType
+
 from SuperMarket import Cart
-from ui.purchase import Ui_purchase
+from ui.Purchase import Ui_purchase
 from widgets.UIFunctions import showMessage, askQuestion
 
 
 class PurchaseWidget(QWidget, Ui_purchase):
-    def __init__(self, *args, **kwargs):
+    def __init__(self,session,mainwiget, *args, **kwargs):
+        self.session=session
+        self.mainwiget=mainwiget
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.setAttribute(Qt.WA_StyledBackground, True)
 
+        self.producket=None
+        self.limited=False
+
         self.crt = Cart()
-        # initialize combobox
-        self.fieldBrand.addItem('select')
-        self.fieldBrand.addItems(self.crt.getBrandsData(b_id=False, name=True))
-        self.fieldCategory.addItem('select')
-        self.fieldCategory.addItems(self.crt.getCategoriesData(c_id=False, name=True))
-        self.fieldName.addItem('select')
-        self.fieldName.addItems(self.crt.getProductsData(name=True))
+
+        self.comboBox.addItem('vent')
+        self.comboBox.addItem('achat')
+        self.unitnumber.setValue(1)
+
+
         # event updates
-        self.buttonClear.clicked.connect(lambda: self.clear())
-        self.buttonAdd.clicked.connect(lambda: self.AddToCart())
+        self.pushButton_3.clicked.connect(lambda: self.clear())
+        self.pushButton_2.clicked.connect(lambda: self.AddToCart())
         self.buttonRemove.clicked.connect(lambda: self.removeProduct())
         self.buttonClearAll.clicked.connect(lambda: self.clearCart())
         self.buttonPurchase.clicked.connect(lambda: self.purchase())
-        self.fieldCategory.activated.connect(lambda: self.updateProductField())
-        self.fieldBrand.activated.connect(lambda: self.updateProductField())
-        self.fieldCode.returnPressed.connect(lambda: self.productCodeChange())
-        self.fieldName.activated.connect(lambda: self.productNameChange())
-
+        self.clientbutton.clicked.connect(lambda: self.clientmenushow())
+        self.productbutton.clicked.connect(lambda: self.productmenushow())
         # setup tables
         header = self.tableCart.horizontalHeader()
         header.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -44,40 +48,41 @@ class PurchaseWidget(QWidget, Ui_purchase):
 
     def clear(self):
         """method to clears and resets all input fields"""
-        self.fieldCode.clear()
-        self.fieldUnits.setValue(0)
+        self.productbutton.setText("select")
+        self.unitnumber.setValue(1)
+        self.comboBox.setCurrentIndex(0)
+        self.pritdachattext.setText("0")
+        self.pritdeventetext.setText("0")
+        self.labelSold.setText("0 DZD")
+        self.producket=None
 
-        self.fieldBrand.clear()
-        self.fieldBrand.addItem('select')
-        self.fieldBrand.addItems(self.crt.getBrandsData(b_id=False, name=True))
-
-        self.fieldCategory.clear()
-        self.fieldCategory.addItem('select')
-        self.fieldCategory.addItems(self.crt.getCategoriesData(c_id=False, name=True))
-
-        self.fieldName.clear()
-        self.fieldName.addItem('select')
-        self.fieldName.addItems(self.crt.getProductsData(name=True))
 
     def AddToCart(self):
         """method to add items to the cart"""
-        units = self.fieldUnits.text()
-        productCode = self.fieldCode.text()
-        if productCode == '' or productCode == '0':
+        units = self.unitnumber.text()
+        produket=self.producket
+        type=self.comboBox.currentText()
+        price=self.pritdeventetext.text()
+        if produket is None:
             showMessage(self, 'Input Error', 'Please select a product')
             return
         if units == '0':
             showMessage(self, 'Input Error', 'Please set the units required')
             return
-        if self.crt.isExistingProduct(int(productCode)):
+        if self.crt.isExistingProduct(produket):
             showMessage(self, 'Input Error', 'Product already Exist in cart!')
             return
-        if int(self.crt.getProductDetails(productCode)[4]) < int(units):
+        if produket.qt < int(units) and type != "achat":
             showMessage(self, 'Input Error', units + ' units of product is not available!')
             return
+        if price == "0":
+            showMessage(self, 'Input Error', 'Please add the price')
+            return
+        
+        
         units = int(units)
-        productCode = int(productCode)
-        self.crt.newProduct(productCode, units)
+        price=int(price)
+        self.crt.newProduct(type, units, price, produket, self.limited)
         self.clear()
         self.setupCartTable()
         self.updateTotalCost()
@@ -163,5 +168,14 @@ class PurchaseWidget(QWidget, Ui_purchase):
             return
         x = askQuestion(self, 'Purchase Warning', 'Confirm Purchase?')
         if x:
-            self.crt.makePurchase()
+            self.crt.makePurchase(self.session)
             self.clearCart()
+    
+    def clientmenushow(self):
+        print('hearee')
+        self.mainwiget.hide()
+        self.clientwiget=ClientselectionMainwigget(session=self.session,purchsewigget=self,mainwiget=self.mainwiget)
+        self.clientwiget.showMaximized()
+
+    def productmenushow(self):
+        x=0
